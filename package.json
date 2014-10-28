@@ -1,0 +1,10 @@
+{
+  "name": "tule-cron",
+  "description": "A cron library to be used inside tule.",
+  "version": "0.0.1",
+  "main": "tule-cron.js",
+  "author": "Javi Marquez <javi@arqex.com>",
+  "dependencies": {
+    "cron": "~1.0.5"
+  }
+}
