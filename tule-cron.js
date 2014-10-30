@@ -17,6 +17,11 @@ var CronRegisterer = function(){
 };
 
 CronRegisterer.prototype = {
+	init: function(){
+		// Register this module as util
+		config.register( 'cron', Path.join(__dirname, Path.basename( __filename, '.js' ) ) );
+	},
+
 	checkCrons: function(){
 		var me = this;
 
@@ -24,7 +29,7 @@ CronRegisterer.prototype = {
 			.then( function( files ){
 				files.forEach( function( file ){
 					if( Path.extname( file ) == '.js' && !me.crons[ file ] )
-						me.addCron( file );
+						me.addCron( Path.join(config.cron.cronsPath, file ) );
 				});
 			})
 			.catch( function( e ){
@@ -33,18 +38,18 @@ CronRegisterer.prototype = {
 		;
 	},
 
-	addCron: function( filename ){
+	addCron: function( filepath ){
 		try {
-			var cron = require( Path.join(config.cron.cronsPath, filename) );
+			var cron = require( filepath );
 
 			if( !cron || !cron.job )
-				return logger.error( 'Cron has no job', {filename: filename} );
+				return logger.error( 'Cron has no job', {filename: filepath} );
 
 			var interval = cron.interval || config.cron.defaultInterval,
 				job = new CronJob( interval, cron.job )
 			;
 
-			this.crons[ filename ] = {
+			this.crons[ filepath ] = {
 				job: job,
 				method: cron.job,
 				interval: interval
@@ -57,11 +62,14 @@ CronRegisterer.prototype = {
 		catch (e) {
 			return logger.error( 'Cron error', e.stack );
 		}
+	},
+
+	addJob: function( interval, handler ){
+		console.log( 'Starting cron ' + interval );
+		return new CronJob( interval, handler );
 	}
 };
 
-module.exports = {
-	init: function( ){
-		new CronRegisterer();
-	}
-};
+var cronRegisterer = new CronRegisterer();
+
+module.exports = cronRegisterer;
